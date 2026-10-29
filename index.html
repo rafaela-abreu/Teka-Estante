@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Teka Estante</title>
+    <meta name="theme-color" content="#f7f4ed">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+      %22name%22: %22Teka Estante%22,
+      %22short_name%22: %22Teka%22,
+      %22start_url%22: %22./index.html%22,
+      %22display%22: %22standalone%22,
+      %22background_color%22: %22%23f7f4ed%22,
+      %22theme_color%22: %22%23f7f4ed%22
+    }">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,7 +22,6 @@
             --text-main: #2c2c2c;
             --text-muted: #7d7d7d;
             --accent: #d4a373;
-            --accent-hover: #bc8a5f;
             --shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.03);
             --border-radius: 20px;
         }
@@ -73,14 +81,13 @@
             box-shadow: var(--shadow);
             cursor: pointer;
             font-size: 18px;
-            transition: transform 0.2s, background 0.2s;
+            transition: transform 0.2s;
         }
 
         .btn-icon:active {
             transform: scale(0.92);
         }
 
-        /* Categorias / Abas Deslizantes */
         .categories-nav {
             display: flex;
             gap: 10px;
@@ -113,7 +120,6 @@
             box-shadow: var(--shadow);
         }
 
-        /* Área da Estante Principal */
         .shelf-container {
             display: flex;
             flex-direction: column;
@@ -163,7 +169,6 @@
             align-content: start;
         }
 
-        /* Cartão do Aplicativo */
         .app-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -176,7 +181,6 @@
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             border: 1px solid rgba(0,0,0,0.02);
-            transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
             user-select: none;
         }
@@ -239,7 +243,6 @@
             border-radius: 12px;
         }
 
-        /* Modais */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -266,12 +269,6 @@
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            animation: modalUp 0.3s ease;
-        }
-
-        @keyframes modalUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-card h2 {
@@ -303,10 +300,6 @@
             outline: none;
         }
 
-        .form-group input:focus {
-            border-color: var(--accent);
-        }
-
         .modal-buttons {
             display: flex;
             gap: 10px;
@@ -333,7 +326,6 @@
             color: var(--text-main);
         }
 
-        /* Botão Flutuante de Adicionar */
         .fab {
             position: fixed;
             bottom: 25px;
@@ -351,11 +343,6 @@
             cursor: pointer;
             border: none;
             z-index: 99;
-            transition: transform 0.2s;
-        }
-
-        .fab:active {
-            transform: scale(0.9);
         }
     </style>
 </head>
@@ -371,20 +358,14 @@
         </div>
     </header>
 
-    <!-- Navegação por Categorias (Abas) -->
     <div class="categories-nav" id="categoriesNav">
         <div class="cat-chip active" onclick="filterCategory('all', this)">Todas</div>
     </div>
 
-    <!-- Prateleiras / Estante -->
-    <div class="shelf-container" id="shelfContainer">
-        <!-- Preenchido via JavaScript -->
-    </div>
+    <div class="shelf-container" id="shelfContainer"></div>
 
-    <!-- Botão Flutuante para Adicionar App -->
     <button class="fab" onclick="openAppModal()">+</button>
 
-    <!-- Modal Adicionar/Editar App -->
     <div class="modal-overlay" id="appModal">
         <div class="modal-card">
             <h2 id="modalTitle">Adicionar Aplicativo</h2>
@@ -398,13 +379,11 @@
             </div>
             <div class="form-group">
                 <label>Categoria</label>
-                <select id="appCategory">
-                    <!-- Preenchido dinamicamente -->
-                </select>
+                <select id="appCategory"></select>
             </div>
             <div class="form-group">
                 <label>Link / URL (Abre ao clicar)</label>
-                <input type="text" id="appUrl" placeholder="https://exemplo.com">
+                <input type="text" id="appUrl" placeholder="https://exemplo.com" value="https://">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeAppModal()">Cancelar</button>
@@ -413,7 +392,6 @@
         </div>
     </div>
 
-    <!-- Modal Gerenciar Categorias -->
     <div class="modal-overlay" id="categoryModal">
         <div class="modal-card">
             <h2>Gerenciar Categorias</h2>
@@ -424,9 +402,7 @@
                     <button class="btn btn-primary" style="flex: 0.5;" onclick="addCategory()">Criar</button>
                 </div>
             </div>
-            <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;" id="categoryListModal">
-                <!-- Listagem de categorias para apagar se quiser -->
-            </div>
+            <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;" id="categoryListModal"></div>
             <div class="modal-buttons" style="margin-top: 20px;">
                 <button class="btn btn-secondary" style="width: 100%;" onclick="closeCategoryModal()">Fechar</button>
             </div>
@@ -434,13 +410,11 @@
     </div>
 
     <script>
-        // Dados Iniciais Padrão (Caso esteja vazio)
         let defaultCategories = ["Favoritos", "Redes Sociais", "Trabalho", "Utilitários"];
         let defaultApps = [
             { id: 1, name: "YouTube", icon: "📺", category: "Favoritos", url: "https://youtube.com" },
             { id: 2, name: "GitHub", icon: "🐙", category: "Trabalho", url: "https://github.com" },
-            { id: 3, name: "WhatsApp", icon: "💬", category: "Redes Sociais", url: "https://web.whatsapp.com" },
-            { id: 4, name: "Calculadora", icon: "🔢", category: "Utilitários", url: "https://www.google.com/search?q=calculator" }
+            { id: 3, name: "WhatsApp", icon: "💬", category: "Redes Sociais", url: "https://wa.me" }
         ];
 
         let categories = JSON.parse(localStorage.getItem('teka_categories')) || defaultCategories;
@@ -508,10 +482,7 @@
                     });
                 }
 
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
             });
 
             container.innerHTML = html;
@@ -538,7 +509,7 @@
         function openAppModal() {
             document.getElementById('appName').value = '';
             document.getElementById('appIcon').value = '📱';
-            document.getElementById('appUrl').value = '';
+            document.getElementById('appUrl').value = 'https://';
             document.getElementById('appModal').classList.add('active');
         }
 
@@ -563,7 +534,6 @@
 
             if (!name) {
                 alert('Por favor, informe o nome do aplicativo.');
-                return;
             }
 
             const newApp = {
@@ -631,7 +601,6 @@
             }
         }
 
-        // Inicializar
         render();
     </script>
 </body>
